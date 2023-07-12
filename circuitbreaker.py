@@ -9,15 +9,18 @@ class Circuitbreaker(Singleton):
     ts = datetime.now()
 
     def __enter__(self):
-        if self.closed: return
+        if self.closed: return self
         elapsed = (datetime.now() - self.ts).total_seconds()
         if elapsed > 5:
             self.closed = True
-            return
+            print("Timeout over, retrying")
+            return self
+        print("Circuit open, not allowed")
         raise CircuitOpenException()
 
     def __exit__(self, extype, exval, extb):
         if not exval: return True
+        print("Exception, opening circuit")
         self.ts = datetime.now()
         self.closed = False
         return True

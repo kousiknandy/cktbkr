@@ -3,15 +3,26 @@ import asyncio
 
 from circuitbreaker import Circuitbreaker, CircuitOpenException
 
-async def fetch_url(client_session, url, id):
-    await asyncio.sleep(id % 10)
-    print(id, "fetching >>>")
+async def fetch_url_carefully(client_session, url, id):
+    await asyncio.sleep(id//2)
+    print(id, "Start >>>", end=" ")
     try:
         with Circuitbreaker(url):
+            print(id, "fetching >>>")
             async with client_session.get(url) as page:
                 assert page.status == 200
                 print(id, "done!")
                 return await page.text()
     except CircuitOpenException:
-        print(id, "Circuit open!")
+        pass
+    return None
+
+async def fetch_url_carelessly(client, url, id):
+    await asyncio.sleep(id//2)
+    print(id, "Start >>>", end=" ")
+    print(id, "fetching >>>")
+    async with client_session.get(url) as page:
+        assert page.status == 200
+        print(id, "done!")
+        return await page.text()
     return None
