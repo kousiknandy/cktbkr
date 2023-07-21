@@ -17,6 +17,7 @@ async def fetch_url_carefully(client_session, url, id):
         pass
     return None
 
+@Circuitbreaker("careless")
 async def fetch_url_carelessly(client, url, id):
     await asyncio.sleep(id//2+id//4)
     print(id, "Start >>>", end=" ")

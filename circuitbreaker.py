@@ -24,7 +24,16 @@ class Circuitbreaker(Singleton):
         self.ts = datetime.now()
         self.closed = False
         return True
-        
+
+    def __call__(self, function):
+        async def wrapp(*args, **kwargs):
+            try:
+                with self:
+                    return await function(*args, **kwargs)
+            except CircuitOpenException:
+                pass
+            return None
+        return wrapp
 
 if __name__ == "__main__":
     x = Circuitbreaker("foo", 100)

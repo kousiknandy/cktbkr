@@ -13,6 +13,6 @@ async def main():
             ]
             r = await asyncio.gather(*tasks)
         print(*r, sep=",")
-        break
+
 
 asyncio.run(main())
