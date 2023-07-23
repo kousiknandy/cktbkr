@@ -8,21 +8,34 @@ class Circuitbreaker(Singleton):
     closed = True
     ts = datetime.now()
 
+    def __new__(cls, name, timeout=5, retries=1):
+        it = super().__new__(cls, name)
+        it.timeout = timeout
+        it.retries = retries
+        return it
+
     def __enter__(self):
+        if not getattr(self, "_numtry", None):
+            self._numtry = 0
         if self.closed: return self
         elapsed = (datetime.now() - self.ts).total_seconds()
-        if elapsed > 5:
+        if elapsed > self.timeout:
             self.closed = True
             print("Timeout over, retrying")
+            self._numtry = 0
             return self
         print("Circuit open, not allowed")
         raise CircuitOpenException()
 
     def __exit__(self, extype, exval, extb):
         if not exval: return True
-        print("Exception, opening circuit")
-        self.ts = datetime.now()
-        self.closed = False
+        self._numtry += 1
+        if self._numtry >= self.retries:
+            print(f"Exception, exceeded {self.retries} opening circuit")
+            self.ts = datetime.now()
+            self.closed = False
+        else:
+            print(f"Exception, retry count {self._numtry}")
         return True
 
     def __call__(self, function):
