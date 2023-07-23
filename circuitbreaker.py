@@ -7,13 +7,17 @@ class CircuitOpenException(Exception):
 
 
 class Circuitbreaker(Singleton):
+    """Circuitbreaker is singleton because if multiple functions are decorated
+    with the same name, they should refer to the same circuit breaker, the name
+    can be just an arbitrary string chosen by functions, or the hostname or url"""
     closed = True
     ts = datetime.now()
 
-    def __new__(cls, name, timeout=5, retries=1):
+    def __new__(cls, name, timeout=None, retries=None):
+        """Since the first invocation matters we ignore any paramters once set"""
         it = super().__new__(cls, name)
-        it.timeout = timeout
-        it.retries = retries
+        it.timeout = getattr(it, "timeout", None) or timeout or 5
+        it.retries = getattr(it, "retries", 2) or retries or 2
         return it
 
     def __enter__(self):
@@ -21,6 +25,7 @@ class Circuitbreaker(Singleton):
             self._numtry = 0
         if self.closed:
             return self
+        # broken circuit, if waited long enough then retry
         elapsed = (datetime.now() - self.ts).total_seconds()
         if elapsed > self.timeout:
             self.closed = True
@@ -33,6 +38,7 @@ class Circuitbreaker(Singleton):
     def __exit__(self, extype, exval, extb):
         if not exval:
             return True
+        # we're here because of exception, if enough failed, break
         self._numtry += 1
         if self._numtry >= self.retries:
             print(
@@ -45,6 +51,7 @@ class Circuitbreaker(Singleton):
         return True
 
     def __call__(self, function):
+        """When a function is wrapped, we use the context manager ourselves"""
         async def wrapp(*args, **kwargs):
             try:
                 with self:
@@ -57,8 +64,9 @@ class Circuitbreaker(Singleton):
 
 
 if __name__ == "__main__":
-    x = Circuitbreaker("foo", 100)
-    y = Circuitbreaker("foo", 200)
+    x = Circuitbreaker("foo")
+    y = Circuitbreaker("foo", 4)
     z = Circuitbreaker("bar")
     assert x is y
+    print(x.timeout, y.timeout)
     assert x is not z

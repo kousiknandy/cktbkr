@@ -13,8 +13,11 @@ async def main():
     async with aiohttp.ClientSession() as client:
         tasks = [
             asyncio.create_task(
-                fetch_url_carefully(
-                    client, f"http://localhost:8080/{('foo', 'bar')[n % 2]}", n
+                exec_late(
+                    n // 2,
+                    fetch_url_carefully(
+                        client, f"http://localhost:8080/{('foo', 'bar')[n % 2]}", n
+                    ),
                 )
             )
             for n in range(0, 32)
