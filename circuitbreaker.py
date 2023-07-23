@@ -1,8 +1,10 @@
-from  singleton import Singleton
+from singleton import Singleton
 from datetime import datetime
+
 
 class CircuitOpenException(Exception):
     pass
+
 
 class Circuitbreaker(Singleton):
     closed = True
@@ -17,7 +19,8 @@ class Circuitbreaker(Singleton):
     def __enter__(self):
         if not getattr(self, "_numtry", None):
             self._numtry = 0
-        if self.closed: return self
+        if self.closed:
+            return self
         elapsed = (datetime.now() - self.ts).total_seconds()
         if elapsed > self.timeout:
             self.closed = True
@@ -28,14 +31,17 @@ class Circuitbreaker(Singleton):
         raise CircuitOpenException()
 
     def __exit__(self, extype, exval, extb):
-        if not exval: return True
+        if not exval:
+            return True
         self._numtry += 1
         if self._numtry >= self.retries:
-            print(f"Exception, exceeded {self.retries} opening circuit")
+            print(
+                f"Exception {extype} {exval}, exceeded {self.retries} opening circuit"
+            )
             self.ts = datetime.now()
             self.closed = False
         else:
-            print(f"Exception, retry count {self._numtry}")
+            print(f"Exception {extype} {exval}, retry count {self._numtry}")
         return True
 
     def __call__(self, function):
@@ -46,7 +52,9 @@ class Circuitbreaker(Singleton):
             except CircuitOpenException:
                 pass
             return None
+
         return wrapp
+
 
 if __name__ == "__main__":
     x = Circuitbreaker("foo", 100)
