@@ -38,6 +38,7 @@ async def main():
             for n in range(0, 32)
         ]
         r = await asyncio.gather(*tasks)
+    print(*r, sep=",")
 
 
 asyncio.run(main())
