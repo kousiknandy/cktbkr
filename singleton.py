@@ -1,7 +1,7 @@
 class Singleton(object):
     def __new__(cls, name, /, *args, **kwargs):
-        it = cls.__dict__.get("__vault__")
-        if not it:
+        vlt = cls.__dict__.get("__vault__")
+        if not vlt:
             cls.__vault__ = {}
         if it := cls.__vault__.get(name):
             return it
