@@ -19,7 +19,7 @@ async def fetch_url_carefully(client_session, url, id):
     return None
 
 
-@Circuitbreaker("careless", retries=2)
+@Circuitbreaker("careless", retries=3)
 async def fetch_url_carelessly(client_session, url, id):
     """Unaware of context manager and hence wrapped by one"""
     print(id, "Start >>>", end=" ")

@@ -29,7 +29,7 @@ async def main():
         tasks = [
             asyncio.create_task(
                 exec_late(
-                    n // 2,
+                    n,
                     fetch_url_carelessly(
                         client, f"http://localhost:8080/{('foo', 'bar')[n % 2]}", n
                     ),
