@@ -8,6 +8,7 @@ async def get_url(url):
     async with aiohttp.ClientSession() as client:
         async with client.get(url) as page:
             assert page.status == 200
+            print("Succeess")
 
 async def main():
     for i in range(32):
